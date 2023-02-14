@@ -1,4 +1,4 @@
-package com.example.healthjournal
+package com.example.healthjournal.ui
 
 import android.app.Activity
 import android.os.Bundle
@@ -7,10 +7,16 @@ import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import by.kirich1409.viewbindingdelegate.viewBinding
+import com.example.healthjournal.R
+import com.example.healthjournal.databinding.FragmentMainBinding
+import com.example.healthjournal.util.navigate
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.ErrorCodes
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
@@ -18,9 +24,12 @@ import com.google.firebase.ktx.Firebase
 
 class MainFragment : Fragment(R.layout.fragment_main) {
 
-    lateinit var firestore: FirebaseFirestore
+    private val binding:FragmentMainBinding by viewBinding()
 
+    lateinit var firestore: FirebaseFirestore
     private var query: Query? = null
+
+    private lateinit var viewModel:MainFragmentViewModel
 
     private val signInLauncher = registerForActivityResult(
         FirebaseAuthUIActivityResultContract()
@@ -30,8 +39,29 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        viewModel = ViewModelProvider(requireActivity()).get(MainFragmentViewModel::class.java)
+
+        FirebaseFirestore.setLoggingEnabled(true)
+
         firestore = Firebase.firestore
 
+        binding.fabAdd.setOnClickListener {
+            navigate(R.id.action_mainFragment_to_newRecord)
+        }
+
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (shouldStartSignIn()) {
+            startSignIn()
+            return
+        }
+    }
+
+    private fun shouldStartSignIn(): Boolean {
+      //  return !viewModel.isSigningIn && Firebase.auth.currentUser == null
+        return !viewModel.isSigningIn && Firebase.auth.currentUser == null
     }
 
 
@@ -73,7 +103,6 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             .setAvailableProviders(listOf(AuthUI.IdpConfig.EmailBuilder().build()))
             .setIsSmartLockEnabled(false)
             .build()
-
         signInLauncher.launch(intent)
        // viewModel.isSigningIn = true
     }
