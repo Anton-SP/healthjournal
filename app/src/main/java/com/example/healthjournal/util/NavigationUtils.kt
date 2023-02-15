@@ -7,14 +7,14 @@ import androidx.navigation.fragment.findNavController
 
 const val NAV_BUNDLE_KEY = "nav_bundle_key"
 
-fun Fragment.navigate(actionId: Int, data: Parcelable? = null) {
+fun Fragment.navigate(actionId: Int, data: String? = null) {
     val navController = findNavController()
     val bundle = Bundle().apply {
-        putParcelable(NAV_BUNDLE_KEY, data)
+        putString(NAV_BUNDLE_KEY, data)
     }
     navController.navigate(actionId, bundle)
 }
 
+val Fragment.navigationData: String?
+    get() = arguments?.getString(NAV_BUNDLE_KEY)
 
-val Fragment.navigationData: Parcelable?
-    get() = arguments?.getParcelable(NAV_BUNDLE_KEY)

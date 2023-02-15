@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="com.example.healthjournal.ui.MainFragment"
+        android:name="com.example.healthjournal.ui.mainscreen.MainFragment"
         android:label="MainFragment" >
         <action
             android:id="@+id/action_mainFragment_to_newRecord"
@@ -14,6 +14,10 @@
     </fragment>
     <fragment
         android:id="@+id/newRecord"
-        android:name="com.example.healthjournal.ui.NewRecord"
-        android:label="NewRecord" />
+        android:name="com.example.healthjournal.ui.NewRecordFragment"
+        android:label="NewRecord" >
+        <action
+            android:id="@+id/action_newRecord_to_mainFragment"
+            app:destination="@id/mainFragment" />
+    </fragment>
 </navigation>

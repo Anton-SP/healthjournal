@@ -1,5 +1,8 @@
 package com.example.healthjournal.data
 
+import com.google.firebase.firestore.IgnoreExtraProperties
+
+@IgnoreExtraProperties
 data class Record(
     var time:String,
     var pressure1:Int,
