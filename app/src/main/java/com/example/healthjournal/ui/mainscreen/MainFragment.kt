@@ -8,11 +8,18 @@ import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.example.healthjournal.R
+import com.example.healthjournal.app
+import com.example.healthjournal.data.Record
 import com.example.healthjournal.databinding.FragmentMainBinding
+import com.example.healthjournal.ui.RecordListState
 import com.example.healthjournal.util.navigate
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.ErrorCodes
@@ -25,17 +32,26 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.launch
 
-class MainFragment : Fragment(R.layout.fragment_main),RecordAdapter.OnRecordSelectedListener {
+//class MainFragment : Fragment(R.layout.fragment_main), RecordAdapter.OnRecordSelectedListener {
+class MainFragment : Fragment(R.layout.fragment_main) {
 
     private val binding: FragmentMainBinding by viewBinding()
 
-    private var query: Query? = null
+    //  private lateinit var viewModel: MainFragmentViewModel
+    private val viewModel: MainFragmentViewModel by viewModels {
+        MainFragmentViewModel.MainFragmentViewModelFactory(
+            requireContext().app.firestore,
+            FirebaseAuth.getInstance().uid.toString()
+        )
+    }
 
-    private lateinit var viewModel: MainFragmentViewModel
+    private val adapter: RecordsAdapter by lazy { RecordsAdapter() }
 
-    private  var adapter: RecordAdapter? = null
+   // var repo = mutableListOf<Record>()
 
     private val signInLauncher = registerForActivityResult(
         FirebaseAuthUIActivityResultContract()
@@ -45,49 +61,65 @@ class MainFragment : Fragment(R.layout.fragment_main),RecordAdapter.OnRecordSele
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(requireActivity()).get(MainFragmentViewModel::class.java)
+      //  viewModel = ViewModelProvider(requireActivity()).get(MainFragmentViewModel::class.java)
 
         FirebaseFirestore.setLoggingEnabled(true)
 
         initRecycler()
 
-        binding.rvRecord.layoutManager = LinearLayoutManager(requireContext())
+        getRecords()
+
+        collectListFlow()
+
 
         binding.fabAdd.setOnClickListener {
-           val  userID = FirebaseAuth.getInstance().uid.toString()
+           // checkRepo()
+            val userID = FirebaseAuth.getInstance().uid.toString()
             Log.d("HAPPY", userID)
             navigate(R.id.action_mainFragment_to_newRecord, userID)
         }
 
     }
 
-    private fun initRecycler() {
-        query?.let {
-            adapter = object : RecordAdapter(it, this@MainFragment) {
-                override fun onDataChanged() {
-                    // Show/hide content if the query returns empty.
-                    if (itemCount == 0) {
-                        Toast.makeText(requireContext(),"Empty",Toast.LENGTH_SHORT).show()
-                      //  binding.rvRecord.visibility = View.GONE
-                     //   binding.rvRecord.visibility = View.VISIBLE
-                    } else {
-                        Toast.makeText(requireContext(),"Got LIST",Toast.LENGTH_SHORT).show()
-                     //   binding.rvRecord.visibility = View.VISIBLE
-                    //    binding.viewEmpty.visibility = View.GONE
-                    }
-                }
-
-                override fun onError(e: FirebaseFirestoreException) {
-                    // Show a snackbar on errors
-                    Snackbar.make(
-                        binding.root,
-                        "Error: check logs for info.", Snackbar.LENGTH_LONG
-                    ).show()
+    private fun collectListFlow() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+               viewModel.getStateFlow().collect { state ->
+                    checkListState(state)
                 }
             }
-            binding.rvRecord.adapter = adapter
         }
     }
+
+    private fun checkListState(state: RecordListState) {
+        when (state) {
+            is RecordListState.Loading -> {
+                Toast.makeText(requireContext(), "loading record list", Toast.LENGTH_SHORT).show()
+            }
+            is RecordListState.ListSuccess -> {
+                adapter.submitList(state.data)
+            }
+            is RecordListState.Error -> {
+                Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
+            }
+            is RecordListState.DeleteSuccess -> {
+                viewModel.getList()
+            }
+
+        }
+    }
+
+    private fun initRecycler() {
+        binding.rvRecord.apply {
+            adapter = this@MainFragment.adapter
+            layoutManager = LinearLayoutManager(requireContext())
+        }
+    }
+
+  /*  private fun checkRepo() {
+        Toast.makeText(requireContext(), repo.size.toString(), Toast.LENGTH_SHORT).show()
+    }*/
+
 
     override fun onStart() {
         super.onStart()
@@ -95,8 +127,6 @@ class MainFragment : Fragment(R.layout.fragment_main),RecordAdapter.OnRecordSele
             startSignIn()
             return
         }
-
-        adapter?.startListening()
     }
 
     private fun shouldStartSignIn(): Boolean {
@@ -146,8 +176,27 @@ class MainFragment : Fragment(R.layout.fragment_main),RecordAdapter.OnRecordSele
         viewModel.isSigningIn = true
     }
 
-    override fun onRecordSelectedListener(record: DocumentSnapshot) {
-        Toast.makeText(requireContext(),"CLICK",Toast.LENGTH_SHORT).show()
+    private fun getRecords(){
+        viewModel.getList()
     }
+
+    /*  override fun onRecordSelectedListener(record: DocumentSnapshot) {
+          Toast.makeText(requireContext(), "CLICK", Toast.LENGTH_SHORT).show()
+      }*/
+
+   /* private fun getRecords() {
+        val userID = FirebaseAuth.getInstance().uid.toString()
+        requireContext().app.firestore.collection(userID)
+            .get()
+            .addOnSuccessListener { result ->
+                repo.clear()
+                repo = result.toObjects(Record::class.java)
+            }
+        if (repo.size != 0) {
+            adapter.submitList(repo)
+        }
+        //return repo
+    }*/
+
 
 }
