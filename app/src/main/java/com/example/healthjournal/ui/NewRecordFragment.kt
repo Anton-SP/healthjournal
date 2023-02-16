@@ -3,6 +3,7 @@ package com.example.healthjournal.ui
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.example.healthjournal.R
@@ -39,22 +40,35 @@ class NewRecordFragment : Fragment(R.layout.fragment_new_record) {
         userID = navigationData
     }
 
+    private fun checkBuclkData():Boolean {
+        binding.apply {
+            return edPressurePart1.text?.isNotEmpty()!! &&
+                    edPressurePart2.text?.isNotEmpty()!! &&
+                    edPulse.text?.isNotEmpty()!!
+        }
+    }
+
     private fun saveRecord() {
 
         binding.apply {
-            userID?.let { user ->
-                requireContext().app.firestore.collection(user).document()
-                    .set(
-                        Record(
-                            time = Calendar.getInstance().time.toString(),
-                            pressure1 = edPressurePart1.text.toString().toInt(),
-                            pressure2 = edPressurePart2.text.toString().toInt(),
-                            pulse = edPulse.text.toString().toInt()
+            if (checkBuclkData()) {
+                userID?.let { user ->
+                    requireContext().app.firestore.collection(user).document()
+                        .set(
+                            Record(
+                                time = Calendar.getInstance().time.toString(),
+                                pressure1 = edPressurePart1.text.toString().toInt(),
+                                pressure2 = edPressurePart2.text.toString().toInt(),
+                                pulse = edPulse.text.toString().toInt()
+                            )
                         )
-                    )
-                    .addOnSuccessListener { Log.d("HAPPY", "Document successfully written!") }
-                    .addOnFailureListener { e -> Log.w("HAPPY", "Error writing document", e) }
+                        .addOnSuccessListener { Log.d("HAPPY", "Document successfully written!") }
+                        .addOnFailureListener { e -> Log.w("HAPPY", "Error writing document", e) }
+                }
             }
+            else
+                Toast.makeText(requireContext(),"Need add data",Toast.LENGTH_SHORT).show()
+
         }
     }
 
