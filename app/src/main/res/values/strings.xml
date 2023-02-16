@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">healthjournal</string>
+    <string name="symbol_separator">/</string>
+    <string name="message_no_network">No network connection</string>
+    <string name="message_unknown">Unknown error</string>
+    <string name="hint_pressure_part_1">Давление часть 1</string>
+    <string name="hint_pressure_part_2">Давление часть 2</string>
+    <string name="hint_pulse">Пульс</string>
+    <string name="button_ok">ОК</string>
+    <string name="button_cancel">Отмена</string>
 </resources>

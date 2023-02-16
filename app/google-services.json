@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "153813422563",
+    "project_id": "healthjournal-28311",
+    "storage_bucket": "healthjournal-28311.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:153813422563:android:61b734b5c26faff9bbd0d6",
+        "android_client_info": {
+          "package_name": "com.example.healthjournal"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "153813422563-ioc94p7965go9sbkf6gutbaa4pigss64.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSw87pg-lQwtW1y6Mgv3p23IngXhFoTMU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "153813422563-ioc94p7965go9sbkf6gutbaa4pigss64.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
